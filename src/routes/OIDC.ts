@@ -1,6 +1,7 @@
 import { RestManager } from "../rest/RESTManager";
 import { JWKS, OIDCAccessToken, OIDCProviderMetadata } from "../types/OIDC";
 import { OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, REDIRECT_URI } from "../util/Constants";
+import { affinityHeaders } from "../util/Ticket";
 import { extractBaseUrl } from "../util/URL";
 
 export const GetOIDCWellKnown = async (url: string): Promise<OIDCProviderMetadata> => {
@@ -37,13 +38,13 @@ export const GetOIDCAccessTokens = async (url: string, code: string, verifier: s
     const params = new URLSearchParams({
         client_id:     OIDC_CLIENT_ID,
         client_secret: OIDC_CLIENT_SECRET,
-        code,
+        code:          decodeURIComponent(code),
         code_verifier: verifier,
         grant_type:    "authorization_code",
         redirect_uri:  REDIRECT_URI
     });
 
-    return manager.get<OIDCAccessToken>(path, params);
+    return manager.post<OIDCAccessToken>(path, params, undefined, { headers: affinityHeaders(code) });
 };
 
 export const OIDCRefresh = async (url: string, refreshToken: string): Promise<OIDCAccessToken> => {
@@ -54,7 +55,6 @@ export const OIDCRefresh = async (url: string, refreshToken: string): Promise<OI
         refresh_token: refreshToken,
         client_id:     OIDC_CLIENT_ID,
         client_secret: OIDC_CLIENT_SECRET,
-        scope:         "openid+profile"
     });
 
     return manager.post<OIDCAccessToken>(path, params);
