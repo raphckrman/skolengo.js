@@ -30,7 +30,8 @@ export class RestManager {
         const response = await fetch(url, {
             method,
             body: requestBody,
-            headers: requestHeaders
+            headers: requestHeaders,
+            credentials: "omit"
         });
 
         if (!response.ok) {
